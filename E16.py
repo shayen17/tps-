@@ -1,104 +1,103 @@
-"""Una empresa de nano satélites dedicada al monitoreo de lotes campo destinados al agro, tiene
-problemas para la transmisión de los datos recolectados, dado que la ventana de tiempo que
-dispone para enviar los datos antes de una nueva medición es muy corta, por lo que nos solicita
+from grafo import Grafo
+# Implementar un grafo no dirigido para almacenar puntos turísticos de interés de un determi-
+# nado país teniendo en cuenta los siguientes requerimientos:
 
-desarrollar un algoritmo que permita comprimir la información para poder enviarla más rápi-
-do, para lo cual se debe tener en cuenta los siguientes requerimientos:
+# a. debe ser un grafo completo es decir que todos los vértices se deben conectar con todos;
+# b. cargar los siguientes lugares (con sus coordenadas de latitud y longitud) templos de: Ate-
+# nas (Partenón), Zeus (Olimpia), Hera (Olimpia), Apolo (Delfos),Poseidón (Sunión), Arte-
+# misa (Éfeso) y Teatro de Dionisio (Acrópolis)
+# c. hallar el árbol de expansión mínimo partiendo de cualquiera de estos lugares;
+# d. hallar el camino más corto para ir desde el templo de Atenea, el Partenón, en Atenas hasta
+# el templo de Apolo, en Delfos.
 
-a. la información transmitida por el nano satélite son estado del tiempo, humedad del suelo,
-y tres dígitos que identifican el lote al cual pertenecen los datos;
-b. desarrollar un árbol de Huffman que permita comprimir la información para transmitirla,
-la frecuencia de la información transmitida se observa en la siguiente tabla:
+GrafoPunto = Grafo(dirigido=False)
 
-c. comprimir un mensaje y descomprimirlo, para ver si no se pierde información durante el
-proceso de codificación, la trama enviada por el nano satélite tiene el siguiente formato
-(estado del clima-humedad del suelo-cod1-cod2-cod3), por ejemplo la siguiente trama es
-válida “Nublado-Baja-1-5-7”, –los guiones son a fines de comprender como está formada la
-trama pero no forman parte de la misma–;
-d. determinar la diferencia en tamaño de memoria utilizada por la trama original y la trama
-comprimida –puede utilizar la función getsizeof() de la librería sys–."""
-
-from arbol_binario import Arbol
-from cola import Cola
-
-tabla = [['Despejado', 0.22], ['Nublado', 0.15], ['Lluvia', 0.03], ['Baja', 0.26], ['Alta', 0.14], ['1', 0.05], ['2', 0.01], ['3', 0.035], ['5', 0.06], ['7', 0.02], ['8', 0.25]]
-
-dic = {}
+def cargar_templos(grafo):
+    grafo.insertar_vertice("Atenas", data={"longitud":23, "latitud":12})
+    grafo.insertar_vertice("Zeus", data={"longitud":45, "latitud":2})
+    grafo.insertar_vertice("Hera", data={"longitud":2, "latitud":45})
+    grafo.insertar_vertice("Apolo", data={"longitud":99, "latitud":56})
+    grafo.insertar_vertice("Poseidón", data={"longitud":55, "latitud":23})
+    grafo.insertar_vertice("Artemisa", data={"longitud":45, "latitud":19})
+    grafo.insertar_vertice("Teatro de Dionisio", data={"longitud":32, "latitud":21})
 
 
-def como_comparo(arbol):
-    return arbol.frecuencia
+def cargar_aristas(grafo):
+    #ATENAS
+    grafo.insertar_arista(23, "Atenas", "Zeus")
+    grafo.insertar_arista(4, "Atenas", "Hera")
+    grafo.insertar_arista(53, "Atenas", "Apolo")
+    grafo.insertar_arista(1, "Atenas", "Poseidón")
+    grafo.insertar_arista(9, "Atenas", "Artemisa")
+    grafo.insertar_arista(20, "Atenas", "Teatro de Dionisio")
+
+    #ZEUS
+    grafo.insertar_arista(13, "Zeus", "Hera")
+    grafo.insertar_arista(12, "Zeus", "Apolo")
+    grafo.insertar_arista(45, "Zeus", "Poseidón")
+    grafo.insertar_arista(6, "Zeus", "Artemisa")
+    grafo.insertar_arista(23, "Zeus", "Teatro de Dionisio")
+
+    #HERA
+    grafo.insertar_arista(3, "Hera", "Apolo")
+    grafo.insertar_arista(43, "Hera", "Poseidón")
+    grafo.insertar_arista(64, "Hera", "Artemisa")
+    grafo.insertar_arista(52, "Hera", "Teatro de Dionisio")
+
+    #APOLO
+    grafo.insertar_arista(22, "Apolo", "Poseidón")
+    grafo.insertar_arista(62, "Apolo", "Artemisa")
+    grafo.insertar_arista(97, "Apolo", "Teatro de Dionisio")
+
+    #POSEIDON
+    grafo.insertar_arista(5, "Poseidón", "Artemisa")
+    grafo.insertar_arista(2, "Poseidón", "Teatro de Dionisio")
+
+    #ARTEMISA
+    grafo.insertar_arista(24, "Artemisa", "Teatro de Dionisio")
 
 
-bosque = []
+#D
+def buscar_camino_corto(grafo, verticeOrigen, verticeDestino):
+    dios1 = grafo.buscar_vertice(verticeOrigen)
+    dios2 = grafo.buscar_vertice(verticeDestino)
 
-for info, frecuencia in tabla:
-    arbol = Arbol(info, frecuencia = frecuencia)
-    bosque.append(arbol)
+    caminocorto = grafo.dijkstra(dios1, dios2)
 
+    recorrido = None
+    while(not caminocorto.pila_vacia()):
+        dato = caminocorto.desapilar()
+        if(dato[1][0] == verticeDestino):
+            if(recorrido is None):
+                recorrido = dato[0]
+            print(dato[1][0])
+            verticeDestino = dato[1][1]
+    print('el costo total es de :', recorrido, " Kilometros")
 
-bosque.sort(key=como_comparo)
+#C
+def expansion_minima(grafo):
+    arbolExpancionMinima = []
+    arbolExpancionMinima = grafo.prim()
 
+    print("Arbol de expansion minima")
+    for e in arbolExpancionMinima:
+        print(e)
 
-while(len(bosque) > 1):
-    arbol1 = bosque.pop(0)
-    arbol2 = bosque.pop(0)
-    nuevo_arbol = Arbol(frecuencia=arbol1.frecuencia+arbol2.frecuencia)
-    nuevo_arbol.izq = arbol1
-    nuevo_arbol.der = arbol2
-    bosque.append(nuevo_arbol)
-    bosque.sort(key=como_comparo)
+#PUNTO B
+cargar_templos(GrafoPunto)
+cargar_aristas(GrafoPunto)
 
-arbol_huffman = bosque[0]
+#PUNTO C
+expansion_minima(GrafoPunto)
 
-arbol_huffman.barrido_por_nivel_huff()
+#PUNTO D
 print()
-
-def generar_tabla(arbol, cadena='', dic=None):
-    if(arbol is not None):
-        if(arbol.izq is None):
-            dic[arbol.info] = cadena
-        else:
-            cadena += '0'
-            generar_tabla(arbol.izq, cadena, dic)
-            cadena = cadena[0:-1]
-            cadena += '1'
-            generar_tabla(arbol.der, cadena, dic)
+buscar_camino_corto(GrafoPunto,"Atenas","Apolo")
 
 
-generar_tabla(arbol_huffman, dic=dic)
 
 
-def codificar(cadena, dic):
-    cadena_cod = ''
-    for caracter in cadena:
-        cadena_cod += dic[caracter]
-    return cadena_cod
 
 
-def decodificar(cadena_cod, arbol_huff):
-    cadena_deco = ''
-    arbol_aux = arbol_huff
-    pos = 0
-    while(pos < len(cadena_cod)):
-        if(cadena_cod[pos] == '0'):
-            arbol_aux = arbol_aux.izq
-        else:
-            arbol_aux = arbol_aux.der
-        pos += 1
-        if(arbol_aux.izq is None):
-            cadena_deco += arbol_aux.info
-            arbol_aux = arbol_huff
-    return cadena_deco
 
 
-cadena = ["Nublado","Baja","1","5","7"]
-cadena_cod = codificar(cadena, dic)
-
-print("Cadena codificada: ")
-print(cadena_cod)
-print("Cadena decodificada:")
-print(decodificar(cadena_cod, arbol_huffman))
-
-from sys import getsizeof
-print(getsizeof(cadena_cod), getsizeof(b'1010111001110101101111'))
